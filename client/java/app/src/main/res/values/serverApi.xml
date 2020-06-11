@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="host" translatable="false">192.168.1.2</string>
+    <integer name="port">5000</integer>
+</resources>
