@@ -1,7 +1,7 @@
 # description of tic-tac-toe api v1.1
 
 ## /tic-tac-toe/api/v1.1/client-id/
-**methods**: GET and POST
+**methods**: POST
 First of all, you need to connect to the server and get two integers: **client-id** and **password**
 Response code 201. Response body contains json in format
 {
@@ -16,7 +16,7 @@ If that case the client should make a request for another client-id
 
 ## /tic-tac-toe/api/v1.1/client-id/<client-id>/start-game/
 **example** /tic-tac-toe/api/v1.1/client-id/123/start-game/
-**methods**: GET and POST
+**methods**: POST
 Body should contain json object with field **password** and valid integer value
 {
     "password": 184
@@ -65,7 +65,7 @@ If the client sends invalid move to server, server response will contain error
 
 ## /tic-tac-toe/api/v1.1/players/<player_id>/game/get-changes/
 **example** /tic-tac-toe/api/v1.1/client-id/123/game/get-changes/
-**methods**: GET
+**methods**: POST
 Body should contain json object in format
 {
     "password": 184

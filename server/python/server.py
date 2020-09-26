@@ -50,7 +50,7 @@ def start_new_game(client_id):
     return jsonify({'message-type': 'start-game', 'start-game': True, "player-order": order}), 201
 
 
-@app.route('/tic-tac-toe/api/v1.1/players/<client_id>/game/make-move/', methods=['POST'])
+@app.route('/tic-tac-toe/api/v1.1/players/<client_id>/game/make-move/', methods=['GET', 'POST'])
 def make_move(client_id):
     json = request.get_json(force=True)
     password = json.get('password')
@@ -71,7 +71,7 @@ def make_move(client_id):
     return jsonify({'message-type': 'accept-step', 'accepted': True})
 
 
-@app.route('/tic-tac-toe/api/v1.1/players/<player_id>/game/get-changes/', methods=['GET'])
+@app.route('/tic-tac-toe/api/v1.1/players/<player_id>/game/get-changes/', methods=['GET', 'POST'])
 def get_changes(player_id, step):
     json = request.get_json(force=True)
     password = json.get('password')

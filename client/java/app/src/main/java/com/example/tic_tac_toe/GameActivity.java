@@ -6,24 +6,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Scanner;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 
 public class GameActivity extends AppCompatActivity {
     private static final String host = "192.168.1.2";
@@ -31,11 +23,49 @@ public class GameActivity extends AppCompatActivity {
     private int dim;
     private int[] cellValues;
     private int player_order;
-    private int player_id;
     private int step;
     private boolean isGameStarted;
     private boolean isGameLocked;
     private String sign;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_game);
+        GameModel gameModel = new GameModel();
+        ServerApiManager.instance().setGameModel(gameModel);
+        dim = 3;
+        step = 0;
+        cellValues = new int[dim * dim];
+        for (int i = 0; i < dim * dim; i++) {
+            cellValues[i] = 0;
+        }
+        try {
+            ServerApiManager.instance().askToStartGame();
+        } catch (InterruptedException | JSONException | IOException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateStep(int step) {
+
+    }
+
+    public void updateValue(int value, int col, int row) {
+
+    }
+
+    public void updateValues(int[] values) {
+
+    }
+
+    public void updateDim(int dim) {
+
+    }
+
+    public void updateOrder(int order) {
+
+    }
 
     protected int getIdByNum(int num) {
         switch (num) {
@@ -87,97 +117,65 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game);
-        dim = 3;
-        step = 0;
-        cellValues = new int[dim * dim];
-        for (int i = 0; i < dim * dim; i++) {
-            cellValues[i] = 0;
-        }
-        Intent intent = getIntent();
-        player_id = intent.getIntExtra(MainActivity.EXTRA_PLAYER_ID, -1);
-        try {
-            startNewGame();
-        } catch (InterruptedException | JSONException | IOException | ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
+//    protected void startNewGame() throws IOException, JSONException, InterruptedException, ExecutionException {
+//        ServerApiManager.instance().askToStartGame();
+//        URL url = new URL("http", host, port,
+//                "/tic-tac-toe/api/v1.1/" + player_id + "/start-game/");
+//        while (!isGameStarted) {
+//            String bodyString = "{\"password\":" + player_password + "}";
+//            FutureTask<String> task = new FutureTask<>(new RequestToServer(url, bodyString));
+//            Thread thread = new Thread(task);
+//            thread.start();
+//            String message = task.get();
+//            JSONObject json = new JSONObject(message);
+//            isGameStarted = json.getBoolean("start-game");
+//            if (isGameStarted) {
+//                player_order = json.getInt("player-order");
+//                isGameLocked = (player_order == 2);
+//                if (player_order == 1) {
+//                    sign = getString(R.string.x_value);
+//                } else {
+//                    sign = getString(R.string.o_value);
+//                }
+//                break;
+//            }
+//            Thread.sleep(10 * 1000);
+//        }
+//    }
 
-    protected void startNewGame() throws IOException, JSONException, InterruptedException, ExecutionException {
-        URL url = new URL("http", host, port,
-                "/tic-tac-toe/api/v1.0/players/" + player_id + "/game/");
-
-        while (!isGameStarted) {
-            FutureTask<String> task = new FutureTask<>(new RequestToServer(url));
-            Thread thread = new Thread(task);
-            thread.start();
-            String message = task.get();
-            JSONObject json = new JSONObject(message);
-            isGameStarted = json.getBoolean("start-game");
-            if (isGameStarted) {
-                player_order = json.getInt("player-order");
-                isGameLocked = (player_order == 2);
-                if (player_order == 1) {
-                    sign = getString(R.string.x_value);
-                } else {
-                    sign = getString(R.string.o_value);
-                }
-                break;
-            }
-            Thread.sleep(10 * 1000);
-        }
-    }
-
-    protected void sendNewState(int col, int row, int step) throws IOException, JSONException, ExecutionException, InterruptedException {
-        @SuppressLint("DefaultLocale") URL url = new URL("http", host, port,
-                "/tic-tac-toe/api/v1.0/players/" +
-                        player_id + "/game/" +
-                        String.format("?step=%d&col=%d&row=%d", step, col, row));
-        FutureTask<String> task = new FutureTask<>(new RequestToServer(url));
-        Thread thread = new Thread(task);
-        thread.start();
-        String message = task.get();
-        JSONObject json = new JSONObject(message);
-        json.getBoolean("accepted");
-    }
-
-    protected void update(int step) throws IOException, JSONException, ExecutionException, InterruptedException {
-        @SuppressLint("DefaultLocale") URL url = new URL("http", host, port,
-                "/tic-tac-toe/api/v1.0/players/" + player_id + "/game/" +
-                        String.format("?step=%d&", step));
-        while (true) {
-            FutureTask<String> task = new FutureTask<>(new RequestToServer(url));
-            Thread thread = new Thread(task);
-            thread.start();
-            String message = task.get();
-            JSONObject json = new JSONObject(message);
-            if (json.getBoolean("changed")) {
-                JSONArray values = json.getJSONArray("values");
-                Button b;
-                for (int i = 0; i < values.length(); i++) {
-                    cellValues[i] = values.getInt(i);
-                    b = findViewById(getIdByNum(i));
-                    switch(cellValues[i]) {
-                        case 0:
-                            b.setText("");
-                            break;
-                        case 1:
-                            b.setText(getString(R.string.x_value));
-                            break;
-                        case 2:
-                            b.setText(getString(R.string.o_value));
-                            break;
-                    }
-                }
-                this.step = json.getInt("step");
-                isGameLocked = false;
-                break;
-            }
-        }
-    }
+//    protected void getChangesFromServer(int step) throws IOException, JSONException, ExecutionException, InterruptedException {
+//        URL url = new URL("http", host, port,"/tic-tac-toe/api/v1.1/" + player_id + "/get-changes/");
+//        while (true) {
+//            String bodyString = "{\"password\":" + player_password + "}";
+//            FutureTask<String> task = new FutureTask<>(new RequestToServer(url, bodyString));
+//            Thread thread = new Thread(task);
+//            thread.start();
+//            String message = task.get();
+//            JSONObject json = new JSONObject(message);
+//            if (json.getBoolean("changed")) {
+//                JSONArray values = json.getJSONArray("values");
+//                Button b;
+//                for (int i = 0; i < values.length(); i++) {
+//                    cellValues[i] = values.getInt(i);
+//                    b = findViewById(getIdByNum(i));
+//                    switch(cellValues[i]) {
+//                        case 0:
+//                            b.setText("");
+//                            break;
+//                        case 1:
+//                            b.setText(getString(R.string.x_value));
+//                            break;
+//                        case 2:
+//                            b.setText(getString(R.string.o_value));
+//                            break;
+//                    }
+//                }
+//                this.step = json.getInt("step");
+//                isGameLocked = false;
+//                break;
+//            }
+//        }
+//    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void cellClicked(View v) {
@@ -195,8 +193,8 @@ public class GameActivity extends AppCompatActivity {
             b.setText(sign);
             step++;
             try {
-                sendNewState(num / dim, num % dim, step);
-                update(step);
+                ServerApiManager.instance().sendMove(step, num / dim, num % dim);
+                ServerApiManager.instance().getChangesFromServer(step);
             } catch (IOException | JSONException | ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
